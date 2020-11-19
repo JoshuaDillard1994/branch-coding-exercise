@@ -7,7 +7,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,22 +25,28 @@ public class GithubController {
     Gson gson = new GsonBuilder().serializeNulls().create();
 
     @GetMapping(value = "/userData/{userName}")
-    public ResponseEntity<?> getGithubData(@PathVariable("userName") String userName) throws IOException {
+    public ResponseEntity<?> getGithubData(@PathVariable("userName") String userName) {
 
-        UserData userData = getUserData(userName);
-        List<RepoData> repoData = getRepoData(userName);
+        try {
 
-        GithubData githubData = new GithubData();
-        githubData.userName = userData.userName;
-        githubData.displayName = userData.displayName;
-        githubData.avatar = userData.avatar;
-        githubData.geoLocation = userData.geoLocation;
-        githubData.email = userData.email;
-        githubData.url = userData.url;
-        githubData.createdAt = userData.createdAt;
-        githubData.repos = repoData;
+            UserData userData = getUserData(userName);
+            List<RepoData> repoData = getRepoData(userName);
 
-        return new ResponseEntity<>(gson.toJson(githubData), HttpStatus.OK);
+            GithubData githubData = new GithubData();
+            githubData.userName = userData.userName;
+            githubData.displayName = userData.displayName;
+            githubData.avatar = userData.avatar;
+            githubData.geoLocation = userData.geoLocation;
+            githubData.email = userData.email;
+            githubData.url = userData.url;
+            githubData.createdAt = userData.createdAt;
+            githubData.repos = repoData;
+
+            return new ResponseEntity<>(gson.toJson(githubData), HttpStatus.OK);
+
+        } catch (IOException e){
+            return new ResponseEntity<>("An error occurred while retrieving user data.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
 
     }
 
@@ -53,6 +58,10 @@ public class GithubController {
 
         Call call = client.newCall(request);
         Response response = call.execute();
+
+        if(200 != (response.code())){
+            throw new IOException();
+        }
 
         return gson.fromJson(response.body().string(), UserData.class);
 
@@ -66,6 +75,10 @@ public class GithubController {
 
         Call call = client.newCall(request);
         Response response = call.execute();
+
+        if(200 != (response.code())){
+            throw new IOException();
+        }
 
         RepoData[] repoDataArray = gson.fromJson(response.body().string(), RepoData[].class);
         List<RepoData> repoDataList = new ArrayList<>();
