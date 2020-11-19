@@ -1,11 +1,10 @@
 package com.demo.codingchallenge.rest;
 
 import com.google.gson.annotations.SerializedName;
-import lombok.Data;
 
 import java.util.List;
 
-@Data
+
 public class GithubData {
 
     @SerializedName("user_name")
